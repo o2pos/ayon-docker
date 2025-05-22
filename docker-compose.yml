@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   postgres:
     image: postgres:${AYON_STACK_POSTGRES_TAG:-15}
@@ -61,8 +62,8 @@ services:
       # - "./backend:/backend"
     
     args:
-      - AYON_BACKEND_PATH=../ayon-backend@1.8.5
-      - AYON_FRONTEND_PATH=../ayon-frontend@20250521ß
+      - AYON_BACKEND_PATH: ${AYON_BACKEND_PATH}
+      - AYON_FRONTEND_PATH: ${AYON_FRONTEND_PATH}
 
 volumes:
   db: {}
