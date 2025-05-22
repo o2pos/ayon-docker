@@ -59,6 +59,10 @@ services:
 
       # uncomment the following line if you need to work on the backend code
       # - "./backend:/backend"
+    
+    args:
+      - AYON_BACKEND_PATH=../ayon-backend@1.8.5
+      - AYON_FRONTEND_PATH=../ayon-frontend@20250521ß
 
 volumes:
   db: {}

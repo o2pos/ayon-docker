@@ -1,6 +1,9 @@
 FROM python:3.11-slim AS build-ffmpeg
 ENV FFMPEG_VERSION=7.1
 
+ARG AYON_BACKEND_PATH
+ARG AYON_FRONTEND_PATH
+
 RUN apt-get update && apt-get install -y \
     autoconf \
     automake \
@@ -49,21 +52,21 @@ RUN ./configure \
 
 FROM node:22 AS build-frontend
 
-WORKDIR /frontend
+WORKDIR ${AYON_FRONTEND_PATH}
 
 COPY \
-  ./frontend/index.html \
-  ./frontend/tsconfig.node.json \
-  ./frontend/tsconfig.json \
-  ./frontend/vite.config.ts \
+  ${AYON_FRONTEND_PATH}/index.html \
+  ${AYON_FRONTEND_PATH}/tsconfig.node.json \
+  ${AYON_FRONTEND_PATH}/tsconfig.json \
+  ${AYON_FRONTEND_PATH}/vite.config.ts \
   .
-COPY ./frontend/package.json ./frontend/yarn.lock .
+COPY .${AYON_FRONTEND_PATH}/package.json .${AYON_FRONTEND_PATH}/yarn.lock .
 
 RUN yarn install
 
-COPY ./frontend/public /frontend/public
-COPY ./frontend/share[d] /frontend/shared
-COPY ./frontend/src /frontend/src
+COPY ${AYON_FRONTEND_PATH}/public ${AYON_FRONTEND_PATH}/public
+COPY ${AYON_FRONTEND_PATH}/share[d] ${AYON_FRONTEND_PATH}/shared
+COPY ${AYON_FRONTEND_PATH}/src ${AYON_FRONTEND_PATH}/src
 
 RUN yarn build
 
@@ -88,28 +91,28 @@ RUN apt-get update && \
 COPY --from=build-ffmpeg /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
 COPY --from=build-ffmpeg /usr/local/bin/ffprobe /usr/local/bin/ffprobe
 
-WORKDIR /backend
+WORKDIR ${AYON_BACKEND_PATH}
 
-COPY ./backend/pyproject.toml ./backend/uv.lock .
+COPY ${AYON_BACKEND_PATH}/pyproject.toml ${AYON_BACKEND_PATH}/uv.lock .
 RUN --mount=from=ghcr.io/astral-sh/uv,source=/uv,target=/bin/uv \
     uv pip install -r pyproject.toml --system
 
-COPY ./backend/static /backend/static
-COPY ./backend/start.sh /backend/start.sh
-COPY ./backend/reload.sh /backend/reload.sh
-COPY ./backend/nxtool[s] /backend/nxtools
-COPY ./backend/demogen /backend/demogen
-COPY ./backend/linker /backend/linker
-COPY ./backend/setup /backend/setup
-COPY ./backend/aycli /usr/bin/ay
-COPY ./backend/maintenance /backend/maintenance
+COPY ${AYON_BACKEND_PATH}/static /backend/static
+COPY ${AYON_BACKEND_PATH}/start.sh /backend/start.sh
+COPY ${AYON_BACKEND_PATH}/reload.sh /backend/reload.sh
+COPY ${AYON_BACKEND_PATH}/nxtool[s] /backend/nxtools
+COPY ${AYON_BACKEND_PATH}/demogen /backend/demogen
+COPY ${AYON_BACKEND_PATH}/linker /backend/linker
+COPY ${AYON_BACKEND_PATH}/setup /backend/setup
+COPY ${AYON_BACKEND_PATH}/aycli /usr/bin/ay
+COPY ${AYON_BACKEND_PATH}/maintenance /backend/maintenance
 
-COPY ./backend/schemas /backend/schemas
-COPY ./backend/ayon_server /backend/ayon_server
-COPY ./backend/api /backend/api
+COPY ${AYON_BACKEND_PATH}/schemas /backend/schemas
+COPY ${AYON_BACKEND_PATH}/ayon_server /backend/ayon_server
+COPY ${AYON_BACKEND_PATH}/api /backend/api
 COPY ./RELEAS[E] /backend/RELEASE
 
-COPY --from=build-frontend /frontend/dist/ /frontend
+COPY --from=build-frontend ${AYON_FRONTEND_PATH}/dist/ ${AYON_FRONTEND_PATH}
 
 RUN sh -c 'date +%y%m%d%H%M > /backend/BUILD_DATE'
 
